@@ -64,6 +64,13 @@ async def predict(input: PredictionInput):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en la predicción: {str(e)}")
 
+def calculate_metrics(y_true, y_pred):
+    return {
+        "precision": precision_score(y_true, y_pred, average='weighted'),
+        "recall": recall_score(y_true, y_pred, average='weighted'),
+        "f1_score": f1_score(y_true, y_pred, average='weighted')
+    }
+
 @app.post("/retrain_replace")
 async def retrain_replace(file: UploadFile = File(...)):
     try:
@@ -80,11 +87,17 @@ async def retrain_replace(file: UploadFile = File(...)):
         model.fit(texts, labels)
         dump(model, "modelo_clasificacion_texto.joblib")
         
-        return {"message": "Modelo reentrenado y reemplazado con éxito"}
+        # Calcular métricas
+        predictions = model.predict(texts)
+        metrics = calculate_metrics(labels, predictions)
+        
+        return {
+            "message": "Modelo reentrenado y reemplazado con éxito",
+            "metrics": metrics
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en el reentrenamiento: {str(e)}")
 
-#Funciones (EndPoints) para reentrenar el modelo con diferentes estrategias (ADICIONALES).
 @app.post("/retrain_concatenate")
 async def retrain_concatenate(file: UploadFile = File(...)):
     try:
@@ -99,7 +112,14 @@ async def retrain_concatenate(file: UploadFile = File(...)):
         model.fit(texts, labels)
         dump(model, "modelo_clasificacion_texto.joblib")
         
-        return {"message": "Modelo reentrenado con datos concatenados con éxito"}
+        # Calcular métricas
+        predictions = model.predict(texts)
+        metrics = calculate_metrics(labels, predictions)
+        
+        return {
+            "message": "Modelo reentrenado con datos concatenados con éxito",
+            "metrics": metrics
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en el reentrenamiento: {str(e)}")
 
@@ -122,7 +142,14 @@ async def retrain_weighted(file: UploadFile = File(...)):
         model.fit(texts, labels, clf__sample_weight=weights)
         dump(model, "modelo_clasificacion_texto.joblib")
         
-        return {"message": "Modelo reentrenado con ponderación de datos con éxito"}
+        # Calcular métricas
+        predictions = model.predict(texts)
+        metrics = calculate_metrics(labels, predictions)
+        
+        return {
+            "message": "Modelo reentrenado con ponderación de datos con éxito",
+            "metrics": metrics
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en el reentrenamiento: {str(e)}")
 
