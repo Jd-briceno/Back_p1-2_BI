@@ -84,6 +84,7 @@ async def retrain_replace(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en el reentrenamiento: {str(e)}")
 
+#Funciones (EndPoints) para reentrenar el modelo con diferentes estrategias (ADICIONALES).
 @app.post("/retrain_concatenate")
 async def retrain_concatenate(file: UploadFile = File(...)):
     try:
